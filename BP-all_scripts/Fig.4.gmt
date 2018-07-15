@@ -1,0 +1,85 @@
+#!/bin/csh -f
+
+gmtset ANNOT_FONT_PRIMARY Times-Roman
+gmtset HEADER_FONT Times-Roman
+gmtset LABEL_FONT Times-Roman
+gmtset COLOR_BACKGROUND = 0
+gmtset BASEMAP_TYPE     = plain
+gmtset LABEL_FONT_SIZE 15p
+gmtset PAPER_MEDIA A1
+
+#----------------------------------------------------------------------------------------------------------------------------
+
+set psfile = Rspeed.ps
+set energy_file = mkrup_sm_CBP.out_calibrated
+set ptime = `awk '{if (NR == 2) print $1}' BP_para.txt`
+set evlo = `awk '{if (NR == 1) print $1}' BP_para.txt`
+set evla = `awk '{if (NR == 1) print $2}' BP_para.txt`
+set duration=200
+ 
+
+
+### First part: Epicentral distance with time
+
+set range = 0/$duration/0/300
+set size = 16c/8.0c
+
+psbasemap -JX$size -R$range -Ba20f5:"Time (sec)":/a50f10:"Epicentral distance (km)":SW -K -P > $psfile
+
+awk '{if($4-'$ptime' <= 250 && $3 >= 0.15) print $4-'$ptime',$5,($3)^1}' $energy_file | psxy -Wthinnest/gray -Sc  -Gblack -R$range -JX$size -O -K -A >> $psfile
+awk '{if($4-'$ptime' <= 250) print $4-'$ptime',( $4-'$ptime')*0.5}' $energy_file | psxy  -Sc0.1c  -Gcyan -R$range  -JX$size -O -K -A >> $psfile
+awk '{if($4-'$ptime' <= 250) print $4-'$ptime',( $4-'$ptime')*1.5}' $energy_file | psxy  -Sc0.1c  -Gred -R$range  -JX$size -O -K -A >> $psfile
+awk '{if($4-'$ptime' <= 250) print $4-'$ptime',( $4-'$ptime')*4.0}' $energy_file | psxy  -Sc0.1c  -Ggreen -R$range  -JX$size -O -K -A >> $psfile
+
+echo 180 70  15 0 4 MC 0.5 km/s | pstext -R$range -Gcyan -JX$size -O -K  -P >> $psfile
+echo 160 210 15 0 4 MC 1.5 km/s | pstext -R$range -Gred -JX$size -O -K  -P >> $psfile
+echo 70  220 15 0 4 MC 4.0 km/s | pstext -R$range -Ggreen -JX$size -O -K  -P >> $psfile
+
+#----------------------------------------------------------------------------------------------------------------------------
+
+### Second part: Normalized amplitude with time
+
+set range = 0/$duration/0/1
+set size = 16c/5.0c
+
+psbasemap -JX$size -R$range -Ba20f5:"Time (sec)":/a0.2f0.05:"Normalized Amplitude":SW -K -P  -O -Y12C  >> $psfile
+
+awk '{if($4-'$ptime' <= 280) print $4-'$ptime',$3}' $energy_file | psxy -Wthick/black -Sc0.15C  -Gblack -R$range  -JX$size -O -K -A >> $psfile
+awk '{if($4-'$ptime' <= 280) print $4-'$ptime',$3}' $energy_file | psxy -Wthick/black    -R$range  -JX$size -O -K -A >> $psfile
+ 
+
+#----------------------------------------------------------------------------------------------------------------------------
+
+set offset = 4
+
+set lon1 = `echo $evlo-$offset | bc -l`
+set lon2 = `echo $evlo+$offset | bc -l`
+set lat1 = `echo $evla-$offset | bc -l`
+set lat2 = `echo $evla+$offset | bc -l`
+
+echo $evlo $evla
+
+set REGION2=$lon1/$lon2/$lat1/$lat2
+set SIZE=M15c
+set AXIS=a2NSEW
+
+set cptfile=color.cpt
+set datafile=subs.dat
+
+pscoast -R$REGION2 -J$SIZE -B$AXIS  -Ggray -Na -Dh -W0.02/150 -K -X18c -Y-12c -O >> $psfile
+
+awk '{if(NR == 2) print $1,$2}' $datafile |  psxy -J -R$REGION2 -Gred -Sa0.6i -K -O  >> $psfile
+awk '{if(NR > 1) print $1,$2}' $datafile |  psxy -J -R$REGION2 -Ggray30 -Sc0.02i -K -O  >> $psfile
+
+
+makecpt -Crainbow -T0/$duration/1 -N -Z > $cptfile
+
+awk '{if($4-'$ptime' < '$duration') print $1,$2,$4-'$ptime',($3)^1}' mkrup_sm_CBP.out_calibrated |  psxy -J -R$REGION2 -Wgray -C$cptfile -Sc -K -O  >> $psfile
+
+psscale -C$cptfile -B20::/:'Time/s': -D5i/2i/8.0c/0.5c -P  -E -O -V  -K >> $psfile    
+
+
+gs $psfile 
+
+
+

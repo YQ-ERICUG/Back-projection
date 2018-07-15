@@ -1,0 +1,78 @@
+#!/bin/csh -f
+
+gmtset ANNOT_FONT_PRIMARY Times-Roman
+gmtset HEADER_FONT Times-Roman
+gmtset LABEL_FONT Times-Roman
+gmtset COLOR_BACKGROUND = 0
+gmtset BASEMAP_TYPE     = plain
+gmtset LABEL_FONT_SIZE 15p
+gmtset PAPER_MEDIA A1
+
+# The script is bout GMT-4 (http://gmt.soest.hawaii.edu/).
+
+set PS=Station_Eq.ps
+set grid_file=subs.dat
+set stations_location=distri_station.txt 
+
+# Please modify below parameter according to the area you study. 
+
+
+############################################################################################
+
+set M_lon = `awk '{if (NR == 2) print $3}' BP_model_para.txt`
+set M_lat = `awk '{if (NR == 2) print $4}' BP_model_para.txt`
+
+set offset = 20
+
+
+set lon1 = `echo $M_lon-$offset | bc -l`
+set lon2 = `echo $M_lon+$offset | bc -l`
+set lat1 = `echo $M_lat-$offset+1 | bc -l`
+set lat2 = `echo $M_lat+$offset-1 | bc -l`
+
+
+
+set R=$lon1/$lon2/$lat1/$lat2                    
+set B=a10f5WSNE
+set J=M15c
+
+pscoast -R$R -J$J -B$B  -W1/0.1p -Glightgray -Slightblue -N1/0.05p -K  -P  -X20c -Y5c > $PS
+
+#stations distribution
+
+saclst stlo stla f *.SAC | awk '{print $2,$3}' > $stations_location 
+#echo $M_lon $M_lat 0  4 TC  'Model station' | pstext -J -R -Gred -K -O  >> $PS
+psxy $stations_location -J -R -Gblue -St0.3 -K -O  >> $PS
+echo $M_lon $M_lat | psxy -J -R -Gred -St0.5 -K -O  >> $PS
+
+
+
+############################################################################################
+
+set evlo = `awk '{if (NR == 1) print $1}' BP_model_para.txt`  # epicenter's longitude
+set evla = `awk '{if (NR == 1) print $2}' BP_model_para.txt`  # epicenter's latitude
+
+set offset = 5
+
+set lon1 = `echo $evlo-$offset | bc -l`
+set lon2 = `echo $evlo+$offset | bc -l`
+set lat1 = `echo $evla-$offset+1 | bc -l`
+set lat2 = `echo $evla+$offset-1 | bc -l`
+
+set R1=$lon1/$lon2/$lat1/$lat2  
+set B1=a2f1eSNW
+set J1=M15c
+
+pscoast -R$R1 -J$J -B$B1  -W1/0.1p -Glightgray -N1/0.05p -Slightblue -K -X-17c  -O >> $PS
+
+#earthquake location & grid ponits
+
+awk '{if(NR == 2) print $1,$2}' $grid_file |  psxy -J -R -Gred -Sa0.6c -K -O >> $PS
+awk '{if(NR > 1)  print $1,$2}' $grid_file |  psxy -J -R -Ggray30 -Sc0.02i -K -O  >> $PS
+
+############################################################################################
+
+
+rm $stations_location
+
+gs $PS 
