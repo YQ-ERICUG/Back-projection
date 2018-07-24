@@ -25,8 +25,7 @@ ls stations.txt > input_to_Pick_repeat.txt
 
 gfortran -o Pick_repeat.exe Pick_repeat.f /usr/local/sac/lib/sacio.a 
 ./Pick_repeat.exe < input_to_Pick_repeat.txt   
-
-stop                   
+                 
 
 #_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
