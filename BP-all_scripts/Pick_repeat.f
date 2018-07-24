@@ -69,6 +69,7 @@ c      do ista=1,20
           end do
           write(20,*) 'echo ppk >> sac.com'
           write(20,*) 'echo writehdr >> sac.com'
+          write(20,*) 'echo exit >> sac.com'
           write(20,*) 'sac < sac.com > /dev/null'
          close(20)
          call system('csh pick.csh')
