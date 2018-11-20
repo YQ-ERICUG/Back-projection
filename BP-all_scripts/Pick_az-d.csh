@@ -7,7 +7,7 @@ set d1 = 30                          # epicentral distance's minimum
 set d2 = 85                          # epicentral distance's maximum
 
 
-foreach sacfile (*SAC)
+foreach sacfile (*.SAC)
 
  set d  = `saclst gcarc f $file | awk '{printf $2}'`
  set az = `saclst az    f $file | awk '{printf $2}'`
