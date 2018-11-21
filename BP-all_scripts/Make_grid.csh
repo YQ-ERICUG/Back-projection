@@ -14,8 +14,8 @@
 
     set nstrike1 = 20     # no. grid points in positive dir along strike 
     set nstrike2 = 30     # no. grid points in negative dir along strike 
-    set nperp1   = 10     # no. grid points eastward to hypocenter (east)
-    set nperp2   = 20     # no. grid points westward to hypocenter (west)
+    set nperp1   = 10     # no. grid points eastward to hypocenter (right)
+    set nperp2   = 20     # no. grid points westward to hypocenter (left)
 
 
 
